@@ -2,6 +2,9 @@
 
 
 module.exports = function (eleventyConfig) {
+    // copy everything from public -> dist first
+    eleventyConfig.addPassthroughCopy({ "public": "/" });
+    
     eleventyConfig.addCollection("post", function(collectionApi) {
         return collectionApi.getFilteredByTag("post")
             .sort((a, b) => b.date - a.date); // newest first
@@ -34,6 +37,7 @@ module.exports = function (eleventyConfig) {
     });
 
     return {
+        "pathPrefix": "blog/",
         "dir": {
             "includes": "../includes",
             "input": "docs",
