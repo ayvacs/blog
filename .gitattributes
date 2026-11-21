@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Prevent CSS showing up as a programming language on GitHub because it isn't one :p
+*.css linguist-detectable=false
