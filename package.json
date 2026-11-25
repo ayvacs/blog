@@ -3,15 +3,13 @@
     "private": true,
     "scripts": {
         "clear_dist": "rimraf dist && mkdir dist",
-
         "preserve": "npm run clear_dist",
         "serve": "npx @11ty/eleventy --serve",
-        
         "prebuild": "npm run clear_dist",
         "build": "npx @11ty/eleventy"
     },
     "dependencies": {
-        "@11ty/eleventy": "^2.0.1",
+        "@11ty/eleventy": "^3.1.8",
         "copyfiles": "^2.4.1",
         "rimraf": "^6.0.1"
     }
