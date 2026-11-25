@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="../../styles/colours.css">
+    <link rel="stylesheet" href="../../styles/blogpost.css">
+    <base target="_blank">
+</head>
+
+<body>
+    <div id="blog_main">
+        <h3 id="header">AYVACS <a href="../../">home</a></h3>
+        <p id="date">Nov 26, 2026</p>
+        <h1>proving you&#39;re human in 2026</h1>
+
+        <hr>
+
+        <div id="blog-content"><pre><code class="language-zsh">$ keybase id wispaelis
+✔ public key fingerprint: 3696 F7E9 CA76 E400 99EA 40E8 6915 EE19 6785 1835
+✔ &quot;ayvacs&quot; on github: https://gist.github.com/ayvacs/91943fba4897b3f1a4115ebfbe23230d
+✔ admin of ave.is-a.dev via HTTPS: https://ave.is-a.dev/keybase.txt
+✔ admin of gba.js.org via HTTPS: https://gba.js.org/keybase.txt
+✔ admin of simple-pip.js.org via HTTPS: https://simple-pip.js.org/keybase.txt
+</code></pre>
+<p>In 2026 - the year that <a href="https://www.math.uwaterloo.ca/~mrubinst/alpoge_claude_grh/zeta-paper_v2.pdf">AI models are being accepted as co-authors of mathematical papers</a> and <a href="https://news.ycombinator.com/item?id=50595168">increased gen-AI-powered video game decompilation has forced developers to rethink their publishing strategies</a> - proving that you are actually <em>you</em> across platforms is surprisingly difficult. Most services rely on centralised OAuth or paid verification badges that prove nothing more than who holds a payment method.</p>
+<p>Keybase approaches this problem from first principles: rather than asking third parties to vouch for your identity, it constructs a mathematically-verifiable web of trust using public-key cryptography and an append-only signature chain.</p>
+<p>Here is how my own Keybase profile (<code>wispaelis</code>) ties my digital identity together, how it works under the hood, and why it matters!</p>
+<h3>PGP key-pair</h3>
+<p>At the foundation of my Keybase profile is a 4096-bit RSA PGP keypair that I also use to sign my GitHub commits.</p>
+<pre><code class="language-bash">Fingerprint: 3696 F7E9 CA76 E400 99EA 40E8 6915 EE19 6785 1835
+User ID:     ayvacs
+</code></pre>
+<p>When you interact with a Keybase user, you don't trust Keybase's servers to assert who they are. Private companies should not be the single source of authentication validity; if they become compromised, you're back to square one. Instead, you verify statements signed by their private keys: decentralized systems are much more trustworthy.</p>
+<p>Whenever you add a device (in my case, my laptop, phone, and tablet), or a paper backup key, each instance generates its own local signing and encryption keys. The existing key signs a delegation proof for the new device, forming a local tree of trusted devices.</p>
+<p>For me, my laptop trusted my phone; which trusted my GitHub profile. My laptop then trusted my domains, as well as my tablet. You can recreate this flow yourself using my <a href="https://keybase.io/wispaelis/sigchain#766d961c3b974bf2c116ff26a2db4ba43f6686a34ecb97141f6a0d56c8c2de4a0f">sigchain</a> (which we'll discuss later).</p>
+<h3>Bidirectional proofs</h3>
+<p>Connecting a social handle or a domain to Keybase doesn't work by just pasting a token into your profile. This would be too easy to hack (i.e. if someone compromises your social media page, it would be easy for them to proclaim they're just about anybody!) Instead, it requires a <strong>bidirectional cryptographic proof</strong>:</p>
+<ol>
+<li><strong>Outbound Claim</strong>: My Keybase account signs a statement with my private key asserting: <em>&quot;I, wispaelis on Keybase, own the GitHub account ayvacs and the domain ave.is-a.dev&quot;</em>.</li>
+<li><strong>Inbound Verification</strong>: I post that signed claim publicly in a place only the true owner can write to:
+<ul>
+<li>For GitHub: a public Gist under the <a href="https://github.com/ayvacs"><code>ayvacs</code></a> account.</li>
+<li>For websites: a hosted file at <a href="https://ave.is-a.dev/keybase.txt"><code>ave.is-a.dev/keybase.txt</code></a>.</li>
+</ul>
+</li>
+</ol>
+<p>This matters because there's trust from both ends. Only I could possibly sign my outbound claim; only those who have access to a GitHub profile can post Gists to it; and only those who own a domain can add the required file to it. Therefore, I'm proving beyond a reasonable doubt that I am all three!</p>
+<p>When someone runs <code>keybase id wispaelis</code>, the client pulls these public records, checks the cryptographic signatures against my public key, and verifies the identity independently. If anyone were to tamper with either the DNS, the gist, or Keybase's API, the verification would instantly fail.</p>
+<h3>The sigchain</h3>
+<p>To prevent history rewriting (such as a compromised server quietly replacing a public key), every proof, device addition, and key revocation is appended to a personal signature chain.</p>
+<p>Each link in the chain contains the SHA-256 hash of the previous link, making the chain tamper-evident. Keybase periodically commits the root of all user sigchains into a global Merkle tree, anchoring identity updates into a public, auditable timeline.</p>
+<p>You don't even need the Keybase CLI to inspect this; you can query the public endpoint directly:</p>
+<pre><code class="language-bash">curl -sL &quot;https://keybase.io/_/api/1.0/user/lookup.json?username=wispaelis&quot;
+</code></pre>
+<p>When I was doomscrolling Keybase I came across the <a href="https://keybase.io/mikem/sigchain">sigchain</a> of someone who has 765 historical devices (only 7 of which are active today). Keybase never forgot a single one. You can look through this person's entire device history, seeing which device proved another, over and over again over the course of 12 years.</p>
+<h3>Daily encryption</h3>
+<p>The best part about Keychain is how practical it makes day-to-day cryptography. Sending an encrypted message or file to someone usually requires finding their public key, importing it to your GPG keyring, and trusting their key fingerprint. Booooring, I don't even know what any of those commands do!</p>
+<p>With Keybase, the lookup and verification happen seamlessly:</p>
+<pre><code class="language-bash">keybase encrypt wispaelis -m &quot;Super secret message that NEEDS to be hidden...&quot;
+</code></pre>
+<p>The CLI verifies my identity proofs, fetches my public encryption key, and encrypts the message. No prior key exchanges or manual fingerprint verification required.</p>
+<h3>Why it matters</h3>
+<p>Having spent time researching cryptographic systems, from classic key exchange to modern quantum key distribution, I have a huge appreciation for tools that make robust cryptography so easy to use that your grandma might be using it to text you one day.</p>
+<p>One of my biggest complaints about cryptography is that it's too complicated to set up. If only people who are experienced with tech can use it, then its use cases are severely restricted from the start.</p>
+<p>Keybase proves that decentralised, verifiable identity is easier to achieve than you think. By combining simple public-key primitives with public proof chains, you get a transparent, verifiable identity that you truly own.</p>
+</div>
+
+        <hr>
+
+        <p id="copyright">&copy; 2026 ayvacs. all rights reserved. <a id="view-source"></a></p>
+    </div>
+
+    <!-- Add view edit history btn -->
+    <script>
+        const pageurl = "/blog/keybase/";
+        const btn = document.getElementById("view-source");
+
+        btn.href = `https://github.com/ayvacs/ayvacs.github.io/commits/main/docs${ pageurl.substring(0, pageurl.length - 1) }.md`;
+        btn.textContent = "view edit history";
+    </script>
+
+    <!-- Add hightlight.js syntax highlighting for codeblocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        /* hljs override styles */
+                .hljs { background: none; }
+        pre code.hljs { padding: 0; }
+    </style>
+</body>
+
+</html>

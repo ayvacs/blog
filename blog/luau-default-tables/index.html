@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="../../styles/colours.css">
+    <link rel="stylesheet" href="../../styles/blogpost.css">
+    <base target="_blank">
+</head>
+
+<body>
+    <div id="blog_main">
+        <h3 id="header">AYVACS <a href="../../">home</a></h3>
+        <p id="date">Jun 1, 2026</p>
+        <h1>default tables in luau</h1>
+
+        <hr>
+
+        <div id="blog-content"><pre><code class="language-lua">local inventory = defaultTable(0)
+
+inventory.coins += 50
+inventory.gems += 5
+
+print(inventory.coins)   -- 50
+print(inventory.potions) -- 0
+</code></pre>
+<p>If you've spent any time writing Luau, you've almost certainly run into this runtime error:</p>
+<p><code>attempt to perform arithmetic (add) on nil and number</code></p>
+<p>In Luau (and other languages!), compound operators like <code>+=</code> and <code>-=</code> are great quality-of-life additions. But the moment you attempt to increment a value that <u>doesn't exist yet</u> in a table, the engine stops you right in your tracks.</p>
+<p>Because accessing a non-existent key yields <code>nil</code>, every Luau codebase inevitably gets littered with wordy defensive guard clauses and fallback expressions that are a <u>nightmare</u> for readability:</p>
+<pre><code class="language-lua">-- The standard defensive check
+if (not inventory.coins) then
+    inventory.coins = 0
+end
+inventory.coins += 50
+
+-- Or the slightly conciser inline equivalent:
+inventory.coins = (inventory.coins or 0) + 50
+</code></pre>
+<p>While this does work as you expect it to, it's repetitive and adds unnecessary noise to your codebase. When you're managing nested structures—such as player session stats, inventory systems, or event counters—the ceremony compounds quickly:</p>
+<pre><code class="language-lua">if (not sessionData[player]) then
+    sessionData[player] = {}
+end
+if (not sessionData[player][action]) then
+    sessionData[player][action] = 0
+end
+sessionData[player][action] += 1
+</code></pre>
+<p>Coming from Python, one standard library tool I constantly find myself wishing was built into Lua is <code>collections.defaultdict</code>: a dictionary that automatically initialises missing keys with a default value on first access.</p>
+<p>As it turns out, we can build the exact same behaviour in Luau with under 15 lines of code! no frameworks, no external dependencies, and zero magic.</p>
+<h3>The Implementation</h3>
+<p>All we need to achieve this is Luau's <code>__index</code> metamethod and <code>rawset</code>:</p>
+<pre><code class="language-lua">local function defaultTable(default)
+    local isCallable = type(default) == &quot;function&quot;
+
+    return setmetatable({}, {
+        __index = function(self, key)
+            local value = if isCallable then default(key) else default
+            rawset(self, key, value)
+            return value
+        end
+    })
+end
+</code></pre>
+<p>Let's break down what's happening here:</p>
+<ol>
+<li>When an unpopulated key is indexed (e.g. <code>inventory.coins</code>), Luau checks its metatable for an <code>__index</code> handler.</li>
+<li>If <code>default</code> is a function, we invoke it to generate a fresh value (crucial when defaults are reference types like tables). Otherwise, we simply use the static primitive that <code>default</code> must be.</li>
+<li><code>rawset</code>: We write the value directly into <code>self</code>. Because the key is now physically stored in the hash table, subsequent reads and writes will hit the table directly, bypassing <code>__index</code> entirely and running at native Luau hash lookup speed.</li>
+</ol>
+<p>Because <code>inventory.coins += 50</code> is syntactic sugar for <code>inventory.coins = inventory.coins + 50</code>, Luau first <em>indexes</em> <code>coins</code> (which fires <code>__index</code>, inserts <code>0</code>, and returns <code>0</code>), and then adds <code>50</code> to it.</p>
+<h3>Autovivification (Nested Tables)</h3>
+<p>Where this pattern truly shines is nested data structures (often called <em>autovivification</em>). By passing a constructor function as the default generator, we can nest default tables infinitely:</p>
+<pre><code class="language-lua">local playerStats = defaultTable(function()
+    return defaultTable(0)
+end)
+
+playerStats[&quot;ayvacs&quot;][&quot;kills&quot;] += 1
+playerStats[&quot;ayvacs&quot;][&quot;score&quot;] += 250
+
+print(playerStats[&quot;ayvacs&quot;][&quot;kills&quot;])  -- 1
+print(playerStats[&quot;ayvacs&quot;][&quot;deaths&quot;]) -- 0
+</code></pre>
+<p>There are no nested <code>if not ... then</code> guards in sight. Accessing <code>playerStats[&quot;ayvacs&quot;]</code> immediately instantiates an inner <code>defaultTable(0)</code>, and indexing <code>[&quot;kills&quot;]</code> on that table initialises its value to <code>0</code> right before the <code>+= 1</code> evaluates.</p>
+<h3>Grouping and Buckets</h3>
+<p>The generator function also receives the indexed <code>key</code> as an argument, which makes grouping items into arrays or sub-collections effortless:</p>
+<pre><code class="language-lua">local itemsByType = defaultTable(function()
+    return {}
+end)
+
+table.insert(itemsByType.weapons, &quot;Iron Sword&quot;)
+table.insert(itemsByType.weapons, &quot;Crossbow&quot;)
+table.insert(itemsByType.potions, &quot;Health Elixir&quot;)
+
+print(#itemsByType.weapons) -- 2
+</code></pre>
+<p>No need to check if <code>itemsByType.weapons</code> exists before calling <code>table.insert</code>. It initialises on demand with an empty table.</p>
+<h3>Summary</h3>
+<p>Like the function call notations and closure-driven objects I've explored in earlier posts, <strong>small, thoughtful abstractions in Luau can dramatically elevate developer ergonomics</strong>.</p>
+<p>You don't need a heavy state library or complicated ORM to write clean, enjoyable code. With a simple 12-line helper, one of Luau's most common friction points disappears into a clean, intuitive API.</p>
+</div>
+
+        <hr>
+
+        <p id="copyright">&copy; 2026 ayvacs. all rights reserved. <a id="view-source"></a></p>
+    </div>
+
+    <!-- Add view edit history btn -->
+    <script>
+        const pageurl = "/blog/luau-default-tables/";
+        const btn = document.getElementById("view-source");
+
+        btn.href = `https://github.com/ayvacs/ayvacs.github.io/commits/main/docs${ pageurl.substring(0, pageurl.length - 1) }.md`;
+        btn.textContent = "view edit history";
+    </script>
+
+    <!-- Add hightlight.js syntax highlighting for codeblocks -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        /* hljs override styles */
+                .hljs { background: none; }
+        pre code.hljs { padding: 0; }
+    </style>
+</body>
+
+</html>
