@@ -38,11 +38,11 @@ module.exports = function (eleventyConfig) {
 
     // Directory and URL configuration for Eleventy's build.
     return {
-        pathPrefix: "/",                // Output directory inside of dist/ for html files to be generated
+        pathPrefix: "/",                // URL base path when hosted (use "/" for root domain)
         dir: {
             input: "docs",              // Source templates and markdown content
             includes: "../includes",    // Layouts/partials, resolved relative to `input`
-            output: "dist",             // Generated static site output
+            output: "dist",             // Filesystem directory for generated static site
         },
     };
 };

@@ -1,15 +1,15 @@
-<!DOCTYPE html>
+{% set root = "" %}{% for _ in range(2, page.url.split("/").length) %}{% set root = root + "../" %}{% endfor %}<!DOCTYPE html>
 <html>
 
 <head>
-    <link rel="stylesheet" href="../../styles/colours.css">
-    <link rel="stylesheet" href="../../styles/blogpost.css">
+    <link rel="stylesheet" href="{{ root }}styles/colours.css">
+    <link rel="stylesheet" href="{{ root }}styles/blogpost.css">
     <base target="_blank">
 </head>
 
 <body>
     <div id="blog_main">
-        <h3 id="header">AYVACS <a href="../../">home</a></h3>
+        <h3 id="header">AYVACS <a href="{{ root }}">home</a></h3>
         <p id="date">{{ date | sentenceDate }}</p>
         <h1>{{ title }}</h1>
 
@@ -24,10 +24,10 @@
 
     <!-- Add view edit history btn -->
     <script>
-        const pageurl = "{{ page.url }}";
+        const inputPath = "{{ page.inputPath }}".replace(/^\.\//, "");
         const btn = document.getElementById("view-source");
 
-        btn.href = `https://github.com/ayvacs/ayvacs.github.io/commits/main/docs${ pageurl.substring(0, pageurl.length - 1) }.md`;
+        btn.href = `https://github.com/ayvacs/ayvacs.github.io/commits/main/${inputPath}`;
         btn.textContent = "view edit history";
     </script>
 
