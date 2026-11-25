@@ -10,19 +10,16 @@ Node.js is used to manage dependencies and provide convenient building and servi
 
 * Requires latest node.js and npm
 * Install Node dependencies:
-```
+```bash
 npm i
 ```
-* (Recommended) VSCode extension for live development and preview: <a href="https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer">Live Server</a>
 
 ## Build and Serve
 
+```bash
+npm run build   # builds to `dist/`
+npm run serve   # builds and serves to `localhost:8080`
 ```
-npm run build
-npm run serve
-```
-
-Static HTML is built to `dist/`.
 
 ## Repository Structure
 
