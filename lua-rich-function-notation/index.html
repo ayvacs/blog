@@ -2,14 +2,20 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="../../styles/colours.css">
-    <link rel="stylesheet" href="../../styles/blogpost.css">
+    <title>lua rich function notation | AYVACS</title>
+    <link rel="stylesheet" href="../styles/colours.css">
+    <link rel="stylesheet" href="../styles/blogpost.css">
     <base target="_blank">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="res/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="res/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="res/favicon/favicon-16x16.png">
+    <link rel="manifest" href="res/favicon/site.webmanifest">
 </head>
 
 <body>
     <div id="blog_main">
-        <h3 id="header">AYVACS <a href="../../">home</a></h3>
+        <h3 id="header">AYVACS <a href="../">home</a></h3>
         <p id="date">Jul 28, 2024</p>
         <h1>lua rich function notation</h1>
 
@@ -63,10 +69,10 @@ end
 
     <!-- Add view edit history btn -->
     <script>
-        const pageurl = "/blog/lua-rich-function-notation/";
+        const inputPath = "./docs/blog/lua-rich-function-notation.md".replace(/^\.\//, "");
         const btn = document.getElementById("view-source");
 
-        btn.href = `https://github.com/ayvacs/ayvacs.github.io/commits/main/docs${ pageurl.substring(0, pageurl.length - 1) }.md`;
+        btn.href = `https://github.com/ayvacs/ayvacs.github.io/commits/main/${inputPath}`;
         btn.textContent = "view edit history";
     </script>
 
